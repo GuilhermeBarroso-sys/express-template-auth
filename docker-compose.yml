@@ -1,0 +1,32 @@
+services:
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    ports: 
+      - "8080:8080"
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgresql://docker:docker@postgres:5432/dev
+      NODE_ENV: development
+
+  postgres:
+    image: postgres:alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: docker
+      POSTGRES_PASSWORD: docker
+      POSTGRES_DB: dev
+    command: postgres -c 'max_connections=1000' -c 'shared_buffers=80MB'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docker"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
